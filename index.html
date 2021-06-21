@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>DHao&#39;s Notebook</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="This is a personnal notebook">
+<meta property="og:type" content="website">
+<meta property="og:title" content="DHao&#39;s Notebook">
+<meta property="og:url" content="http://example.com/index.html">
+<meta property="og:site_name" content="DHao&#39;s Notebook">
+<meta property="og:description" content="This is a personnal notebook">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:author" content="DHao">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="DHao's Notebook" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">DHao&#39;s Notebook</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Suche"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Suche"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main">
+  
+    <article id="post-contexmanager" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/06/16/contexmanager/" class="article-date">
+  <time class="dt-published" datetime="2021-06-16T10:40:00.000Z" itemprop="datePublished">2021-06-16</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/06/16/contexmanager/">Contextlib模块和生成器</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="上下文管理器"><a href="#上下文管理器" class="headerlink" title="上下文管理器"></a>上下文管理器</h2><p>上下文管理器是指实现了<code>__enter__</code>方法和<code>__exit__</code>方法的对象，可用在with语句中。进入with代码块前自动调用<code>__enter__</code>方法，退出with代码块后自动调用<code>__exit__</code>方法，不论with代码块中是否发生了异常，<code>__exit__</code>方法都会执行。</p>
+<p><code>__enter__</code>方法返回一个对象，如果使用<code>with... as f</code>的语法会将返回值赋值到变量f上，在with代码块中可以使用这个变量。</p>
+<p><code>__exit__</code>方法接受三个参数，分别是exc_type，exc_value和exc_trackback，代表的是异常相关的信息，如果在with代码块中没有发生异常则都为None。<code>__exit__</code>函数具有屏蔽异常的功能，如果<code>__exit__</code>返回True，那么在with代码块中发生的异常会被屏蔽。</p>
+<p>下面看一个with语句的<a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/26096435/is-python-with-statement-exactly-equivalent-to-a-try-except-finally-bloc">等价实现</a>：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">mgr = (EXPR)</span><br><span class="line">exit = <span class="built_in">type</span>(mgr).__exit__  <span class="comment"># Not calling it yet</span></span><br><span class="line">value = <span class="built_in">type</span>(mgr).__enter__(mgr)</span><br><span class="line">exc = <span class="literal">True</span></span><br><span class="line"><span class="keyword">try</span>:</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        VAR = value  <span class="comment"># Only if &quot;as VAR&quot; is present</span></span><br><span class="line">        BLOCK</span><br><span class="line">    <span class="keyword">except</span>:</span><br><span class="line">        <span class="comment"># The exceptional case is handled here</span></span><br><span class="line">        exc = <span class="literal">False</span></span><br><span class="line">        <span class="keyword">if</span> <span class="keyword">not</span> exit(mgr, *sys.exc_info()):</span><br><span class="line">            <span class="keyword">raise</span></span><br><span class="line">        <span class="comment"># The exception is swallowed if exit() returns true</span></span><br><span class="line"><span class="keyword">finally</span>:</span><br><span class="line">    <span class="comment"># The normal and non-local-goto cases are handled here</span></span><br><span class="line">    <span class="keyword">if</span> exc:</span><br><span class="line">        exit(mgr, <span class="literal">None</span>, <span class="literal">None</span>, <span class="literal">None</span>)</span><br></pre></td></tr></table></figure>
+
+<p>写一个简单的测试代码：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Context</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self, suppress_exc</span>):</span></span><br><span class="line">        self.suppress_exc = suppress_exc</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__enter__</span>(<span class="params">self</span>):</span></span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;enter&quot;</span>)</span><br><span class="line">        <span class="keyword">return</span> self</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__exit__</span>(<span class="params">self, *exc</span>):</span></span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;exit&quot;</span>)</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;exception: &quot;</span>, exc)</span><br><span class="line">        <span class="keyword">return</span> self.suppress_exc</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">test_context</span>():</span></span><br><span class="line">    c = Context(<span class="literal">True</span>)</span><br><span class="line">    <span class="keyword">with</span> c <span class="keyword">as</span> f:</span><br><span class="line">        <span class="keyword">raise</span> TypeError       <span class="comment"># error is suppressed because `__exit__` return True</span></span><br><span class="line"></span><br><span class="line">    c = Context(<span class="literal">False</span>)</span><br><span class="line">    <span class="keyword">with</span> pytest.raises(TypeError):</span><br><span class="line">        <span class="keyword">with</span> c <span class="keyword">as</span> f:</span><br><span class="line">            <span class="keyword">raise</span> TypeError   <span class="comment"># error occurred here</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="生成器"><a href="#生成器" class="headerlink" title="生成器"></a>生成器</h2><p>如果一个函数中有yield关键字，那么这个函数的返回值就是一个生成器。生成器相当于一个由用户控制的子程序，通过调用send方法后开始运行，每当运行到yield位置就挂起，生成器的运行状态继续保留，yield后面的表达式返回给调用者，再次调用send方法可以恢复上一次的运行状态，继续运行到yield语句处，如果生成器返回了一个值，则抛出<code>StopIteration</code>。</p>
+<h3 id="send方法"><a href="#send方法" class="headerlink" title="send方法"></a>send方法</h3><p>通过send方法运行生成器时，还可以发送一个值到生成器中，类似于函数的传参，在形如<code>n=yield expression</code>的语句中，n会被赋值为send方法发送的值，然后继续运行下一行。如果是第一次调用send方法，生成器还没被激活，send方法只能发送None,否则抛出<code>TypeError</code>。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">g</span>():</span></span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        n = <span class="keyword">yield</span> <span class="number">1</span></span><br><span class="line">        <span class="keyword">yield</span> n <span class="keyword">or</span> <span class="number">2</span></span><br><span class="line">    <span class="keyword">except</span>:</span><br><span class="line">        ...</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">test_generator_send</span>():</span></span><br><span class="line">    cm = g()</span><br><span class="line">    <span class="keyword">with</span> pytest.raises(TypeError):</span><br><span class="line">        cm.send(<span class="number">1</span>)</span><br><span class="line">        </span><br><span class="line">    <span class="keyword">assert</span> cm.send(<span class="literal">None</span>) == <span class="number">1</span></span><br><span class="line">    <span class="keyword">assert</span> cm.send(<span class="literal">None</span>) == <span class="number">2</span></span><br><span class="line">    <span class="keyword">with</span> pytest.raises(StopIteration):</span><br><span class="line">        cm.send(<span class="literal">None</span>)</span><br><span class="line"></span><br><span class="line">    cm = g()</span><br><span class="line">    <span class="keyword">assert</span> cm.send(<span class="literal">None</span>) == <span class="number">1</span></span><br><span class="line">    <span class="keyword">assert</span> cm.send(<span class="number">10</span>) == <span class="number">10</span></span><br><span class="line">    <span class="keyword">with</span> pytest.raises(StopIteration):</span><br><span class="line">        cm.send(<span class="literal">None</span>)</span><br></pre></td></tr></table></figure>
+
+<p>通过send方法可以像函数一样操作生成器，比函数更优的是生成器能保存上一次运行的状态，当然闭包也能保存运行的状态，但是生成器更加灵活，语法更加简单清晰。</p>
+<h3 id="throw方法"><a href="#throw方法" class="headerlink" title="throw方法"></a>throw方法</h3><p>throw方法可以向生成器中抛出异常，生成器可以捕获异常进行处理，也可以选择不处理异常，后续讨论的<code>contexmanager</code>修饰器就利用了这个方法将with代码块中异常传递到生成器中进行处理。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">g</span>():</span></span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        n = <span class="keyword">yield</span> <span class="number">1</span></span><br><span class="line">        <span class="keyword">yield</span> n <span class="keyword">or</span> <span class="number">2</span></span><br><span class="line">    <span class="keyword">except</span> TypeError <span class="keyword">as</span> e:</span><br><span class="line">        <span class="keyword">raise</span>                                 <span class="comment"># reraise</span></span><br><span class="line">    <span class="keyword">except</span> ValueError <span class="keyword">as</span> e:</span><br><span class="line">        <span class="keyword">raise</span> ValueError(<span class="string">&#x27;another error&#x27;</span>)     <span class="comment"># another error occurred</span></span><br><span class="line">    <span class="keyword">except</span> KeyError <span class="keyword">as</span> e:</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;somthing&quot;</span>                     <span class="comment"># ignore error</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">throw</span>(<span class="params">e, start=<span class="literal">False</span></span>):</span></span><br><span class="line">    cm = g()</span><br><span class="line">    <span class="keyword">if</span> start:</span><br><span class="line">        cm.send(<span class="literal">None</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        cm.throw(e)</span><br><span class="line">    <span class="keyword">except</span>:</span><br><span class="line">        <span class="keyword">return</span> e, sys.exc_info()[<span class="number">1</span>]</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        <span class="keyword">return</span> e, <span class="literal">None</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">test_generator_throw</span>():</span></span><br><span class="line">    e1, e2 = throw(TypeError())</span><br><span class="line">    <span class="keyword">assert</span> e2 <span class="keyword">is</span> e1</span><br><span class="line">    e1, e2 = throw(ValueError())</span><br><span class="line">    <span class="keyword">assert</span> e2 <span class="keyword">is</span> e1</span><br><span class="line">    e1, e2 = throw(KeyError())</span><br><span class="line">    <span class="keyword">assert</span> e2 <span class="keyword">is</span> e1</span><br><span class="line"></span><br><span class="line">    <span class="comment"># throw a error after generator started</span></span><br><span class="line">    e1, e2 = throw(TypeError(), <span class="literal">True</span>)      <span class="comment"># reraise</span></span><br><span class="line">    <span class="keyword">assert</span> e2 <span class="keyword">is</span> e1</span><br><span class="line">    e1, e2 = throw(ValueError(), <span class="literal">True</span>)     <span class="comment"># raise another error</span></span><br><span class="line">    <span class="keyword">assert</span> e2.__context__ <span class="keyword">is</span> e1</span><br><span class="line">    <span class="keyword">assert</span> e2.args[<span class="number">0</span>] == <span class="string">&quot;another error&quot;</span></span><br><span class="line">    e1, e2 = throw(KeyError(), <span class="literal">True</span>)       <span class="comment"># return somthing</span></span><br><span class="line">    <span class="keyword">assert</span> e2.__context__ <span class="keyword">is</span> <span class="literal">None</span></span><br><span class="line">    <span class="keyword">assert</span> e2.__class__ == StopIteration</span><br><span class="line">    <span class="keyword">assert</span> e2.args[<span class="number">0</span>] == <span class="string">&quot;somthing&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="close方法"><a href="#close方法" class="headerlink" title="close方法"></a>close方法</h3><p>close方法用于关闭生成器，调用close方法后，再调用send方法只会抛出StopIteration，调用throw方法则抛出传入的异常。</p>
+<p>generator是内置类型，close方法也是内建方法，底层使用c语言实现的，但是在Python标准库的collection.abc模块中，<code>Generator</code>抽象类型实现了close方法，可以<a target="_blank" rel="noopener" href="https://github.com/python/cpython/blob/3.9/Lib/_collections_abc.py">参考</a></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Generator</span>(<span class="params">Iterator</span>):</span></span><br><span class="line">    ...</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">close</span>(<span class="params">self</span>):</span></span><br><span class="line">        <span class="string">&quot;&quot;&quot;Raise GeneratorExit inside generator.</span></span><br><span class="line"><span class="string">        &quot;&quot;&quot;</span></span><br><span class="line">        <span class="keyword">try</span>:</span><br><span class="line">            self.throw(GeneratorExit)</span><br><span class="line">        <span class="keyword">except</span> (GeneratorExit, StopIteration):</span><br><span class="line">            <span class="keyword">pass</span></span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            <span class="keyword">raise</span> RuntimeError(<span class="string">&quot;generator ignored GeneratorExit&quot;</span>)</span><br><span class="line">    </span><br><span class="line">    ...</span><br></pre></td></tr></table></figure>
+
+<p>close方法本质上就是通过throw方法抛出GeneratorExit异常，生成器要么运行到return语句返回，抛出StopIteration异常，要么不捕获GeneratorExit异常直接抛出。如果生成器捕获了GeneratorExit并且没有抛出异常（例如遇到了yield语句），则在close中抛出RuntimeError，说起来不是很清晰，遇到这方面的问题可以结合上面的代码分析。</p>
+<h3 id="GeneratorExit"><a href="#GeneratorExit" class="headerlink" title="GeneratorExit"></a>GeneratorExit</h3><p>GeneratorExit是一个特殊的异常，提供了稳定可靠的信号关闭生成器（使用close函数才能真正可靠），一般不要去捕获GeneratorExit。通常我们捕获和处理的异常都是Exception及其子类，GeneratorExit并不属于Exception的子类，所以<code>except Exception: ...</code>不会捕获GeneratorExit异常，但是会被<code>except: ...</code>捕获。（更多的异常层次结构参考<a target="_blank" rel="noopener" href="https://docs.python.org/zh-cn/3/library/exceptions.html?highlight=exception#exception-hierarchy">官方文档</a>）</p>
+<h2 id="contextmanager装饰器"><a href="#contextmanager装饰器" class="headerlink" title="contextmanager装饰器"></a>contextmanager装饰器</h2><p>前面讲了with语句和生成器，在这里将二者联系起来了。contextmanager装饰器可以把一个生成器转换成上下文管理器（<code>_GeneratorContextManager</code>，后面简称GCM），也就是说把<code>__enter__</code>和<code>__exit__</code>的代码都写到一个生成器函数里，在通过contextmanager装饰，就转换成上下文管理器了，这种方式简化了创建上下文管理器的过程，减少了重复性代码。</p>
+<p>生成器函数以yield为分界线，yield之前为<code>__enter__</code>函数的代码，yield之后为<code>__exit__</code>的代码，在GCM的中，<code>__enter__</code>和<code>__exit__</code>依次调用一次send方法就好了。前面还提到<code>__exit__</code>具有处理异常的功能，with代码块中的异常传递给GCR的<code>__exit__</code>方法，而在<code>__exit__</code>方法中，通过throw方法在传递给生成器函数，好了，现在处理异常的代码也能写在生成器函数中了。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@contextmanager</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">gen2</span>():</span></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;enter&quot;</span>)</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        <span class="keyword">yield</span> <span class="built_in">dict</span>(a=<span class="number">1</span>, b=<span class="number">2</span>)</span><br><span class="line">    <span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;catched:&quot;</span>, sys.exc_info())</span><br><span class="line">    <span class="keyword">finally</span>:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;exit&quot;</span>)        <span class="comment"># always run</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">test_context_manager</span>():</span></span><br><span class="line">    cm = gen2()</span><br><span class="line">    <span class="keyword">with</span> cm <span class="keyword">as</span> f:</span><br><span class="line">        <span class="keyword">assert</span> f[<span class="string">&quot;a&quot;</span>] == <span class="number">1</span></span><br><span class="line">        <span class="keyword">assert</span> f[<span class="string">&quot;b&quot;</span>] == <span class="number">2</span></span><br><span class="line"></span><br><span class="line">    cm = gen2()</span><br><span class="line">    <span class="keyword">with</span> cm <span class="keyword">as</span> f:</span><br><span class="line">        <span class="keyword">raise</span> TypeError(<span class="string">&quot;wait to be catched&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>GCR不仅实现了上下文管理器，他本身还是一个装饰器，装饰一个函数后，执行这个函数前先进入GCR上下文，函数结束后退出GCR上下文。见下面这个例子：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">cm = gen2()</span><br><span class="line"></span><br><span class="line"><span class="meta">@cm</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">f</span>():</span></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;dosommthing&quot;</span>)</span><br><span class="line"><span class="string">&#x27;&#x27;&#x27;equivalent:</span></span><br><span class="line"><span class="string">with cm:</span></span><br><span class="line"><span class="string">    f()</span></span><br><span class="line"><span class="string">&#x27;&#x27;&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="contextlib模块中的其他上下文管理器"><a href="#contextlib模块中的其他上下文管理器" class="headerlink" title="contextlib模块中的其他上下文管理器"></a>contextlib模块中的其他上下文管理器</h2><p>下面这些上下文管理器和生成器无关，就是一些基本且简单的上下文管理器。</p>
+<ul>
+<li>closing(obj)：退出上下文时调用obj.close方法</li>
+<li>suppress(*exc)：忽略with代码块中异常</li>
+<li>ExitStack：比上面的复杂些，遇到了再补充</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/06/16/contexmanager/" data-id="ckq6c9oyf0000mgpwfn024ydp" data-title="Contextlib模块和生成器" class="article-share-link">Teilen</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/py-buildins/" rel="tag">py-buildins</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/python/" rel="tag">python</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-traceback" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/06/15/traceback/" class="article-date">
+  <time class="dt-published" datetime="2021-06-15T08:00:00.000Z" itemprop="datePublished">2021-06-15</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/06/15/traceback/">TraceBack模块和Exception类</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>在python中，try…except用于捕获和处理异常，异常可能是由程序错误造成的，也可以通过raise语句手动抛出异常。traceback模块是一个格式化和打印异常及回溯的内建模块，一般不需要直接使用这个模块，本篇文章旨在探索traceback模块的一些细节。</p>
+<h2 id="sys-模块中的-exc-info-函数"><a href="#sys-模块中的-exc-info-函数" class="headerlink" title="sys 模块中的 exc_info 函数"></a>sys 模块中的 exc_info 函数</h2><p>当程序抛出异常时，可以通过try…except语句进行捕获，也可以通过调用sys.exc_info()函数来获取异常信息。sys.exc_info()返回一个三元数组，包括异常类，异常实例和traceback实例。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">try</span>:</span><br><span class="line">    <span class="keyword">raise</span> TypeError(<span class="string">&quot;msg&quot;</span>)</span><br><span class="line"><span class="keyword">except</span> <span class="keyword">as</span> e:</span><br><span class="line">    exc = sys.exc_info()</span><br><span class="line">    <span class="comment"># exc = (TypeError，TypeError(&quot;msg&quot;)，&lt;traceback object at ...&gt;)</span></span><br><span class="line">    <span class="comment"># e = TypeError(&quot;msg&quot;)</span></span><br></pre></td></tr></table></figure>
+
+<p>当通过raise语句抛出异常之后，或者在在except代码块中执行时，sys.exc_info()返回当前的异常，当处理完异常之后，sys.exc_info()返回None。在try…except as e结构中捕获异常之后，异常对象的属性中已经包含了这个三元数组的所有信息.</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">...</span><br><span class="line"><span class="keyword">assert</span> exc[<span class="number">0</span>] == e.__class__</span><br><span class="line"><span class="keyword">assert</span> exc[<span class="number">1</span>] == e</span><br><span class="line"><span class="keyword">assert</span> exc[<span class="number">2</span>] == e.__traceback__</span><br></pre></td></tr></table></figure>
+
+<h2 id="traceback-对象"><a href="#traceback-对象" class="headerlink" title="traceback 对象"></a>traceback 对象</h2><p>traceback对象包含了出现异常的位置信息，主要是抛出异常的文件及行号(tb_lineno)，如果异常出现在函数中，会递归地记录函数内部抛出异常的位置。多个traceback对象通过tb_next属性以链表的结构储存。</p>
+<p>在打印异常信息时，会递归地打印出所有的信息，通过这些信息，我们知道了出现异常的文件和行号，方便修复异常。当函数调用的层数较多时，打印的信息太多反而不容易排查异常，这时候我们可以通过自己捕获和处理异常，限制回溯的层数。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> traceback <span class="keyword">as</span> tb</span><br><span class="line"><span class="keyword">try</span>:</span><br><span class="line">    <span class="keyword">raise</span> TypeError(<span class="string">&quot;msg&quot;</span>)</span><br><span class="line"><span class="keyword">except</span> TypeError <span class="keyword">as</span> e:</span><br><span class="line">    tb.print_exc()          <span class="comment"># 递归打印异常详情</span></span><br><span class="line">    tb.print_exc(limit=<span class="number">1</span>)   <span class="comment"># 限制回溯层数，最多只打印1条异常信息</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="print-tb-vs-print-exc"><a href="#print-tb-vs-print-exc" class="headerlink" title="print_tb vs. print_exc"></a>print_tb vs. print_exc</h2><p>print_tb是一个与print_exc相似的函数，使用print_tb函数时需要传入具体的trackback对象，但是，print_tb(tb_obj)与print_exc()功能并不完全一样，两者是包含关系，print_exc打印的信息更多.</p>
+<p>print_tb只打印对应异常的回溯信息，print_exc还会打印<code>Exception.__context__</code>中所有的回溯信息。</p>
+<p><code>Exception.__context__</code>属性是什么呢? 当捕获了异常(原异常)之后，在except代码块里，如果又产生了新异常，这时新异常的<code>__context__</code>属性就会被置为原异常。这么做是有原因的，因为原异常产生并被捕获了才会执行except代码块里的语句，所以新异常的产生也是由原异常导致的，如果原异常没有产生，根本不需要执行except代码块。因此需要将原异常记录下来以备以后溯源。下面是一个测试：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">try</span>:</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        <span class="keyword">raise</span> TypeError(<span class="string">&quot;type error&quot;</span>)</span><br><span class="line">    <span class="keyword">except</span>:</span><br><span class="line">        <span class="keyword">raise</span> ValueError(<span class="string">&quot;value error&quot;</span>)</span><br><span class="line"><span class="keyword">except</span> ValueError <span class="keyword">as</span> e:</span><br><span class="line">    tb.print_tb(e.__traceback__)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;--dividing line--&quot;</span>)</span><br><span class="line">    tb.print_exc()</span><br></pre></td></tr></table></figure>
+
+<h2 id="raise-关键字"><a href="#raise-关键字" class="headerlink" title="raise 关键字"></a>raise 关键字</h2><p>raise关键字可以主动抛出异常，有时候我们还会见到类似与raise…from None的语句。将上面代码改成这种形式之后,发现print_exc函数不再打印<code>__context__</code>属性中的异常信息了。</p>
+<p>事实上，异常对象中有四个特殊的属性：</p>
+<ul>
+<li><code>__cause__</code>：由raise…from e语句将<code>__cause__</code>置为e</li>
+<li><code>__context__</code>：在except代码块中，当处理异常时发生了新的异常，自动置为原异常</li>
+<li><code>__supress_context__</code>：布尔值，False表示打印与否取决于<code>__contex__</code>，True表示抑制<code>__context__</code>，打印与否取决于<code>__cause__</code>。默认为False，raise …from …语句可将其置为True</li>
+<li><code>__traceback__</code>：异常对应的traceback对象，包含发生异常的位置信息</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">try</span>:</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        <span class="keyword">raise</span> TypeError(<span class="string">&quot;type error&quot;</span>)</span><br><span class="line">    <span class="keyword">except</span> TypeError <span class="keyword">as</span> e:</span><br><span class="line">        <span class="keyword">raise</span> ValueError(<span class="string">&quot;value error&quot;</span>)</span><br><span class="line"><span class="keyword">except</span> ValueError <span class="keyword">as</span> e:</span><br><span class="line">    <span class="keyword">assert</span> e.__context__.__class__ == TypeError</span><br><span class="line">    <span class="keyword">assert</span> e.__cause__ == <span class="literal">None</span></span><br><span class="line">    <span class="keyword">assert</span> e.__suppress_context__ == <span class="literal">False</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">try</span>:</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        <span class="keyword">raise</span> TypeError(<span class="string">&quot;type error&quot;</span>)</span><br><span class="line">    <span class="keyword">except</span> TypeError <span class="keyword">as</span> e:</span><br><span class="line">        <span class="keyword">raise</span> ValueError(<span class="string">&quot;value error&quot;</span>) <span class="keyword">from</span> <span class="literal">None</span></span><br><span class="line"><span class="keyword">except</span> ValueError <span class="keyword">as</span> e:</span><br><span class="line">    <span class="keyword">assert</span> e.__context__.__class__ == TypeError</span><br><span class="line">    <span class="keyword">assert</span> e.__cause__ == <span class="literal">None</span></span><br><span class="line">    <span class="keyword">assert</span> e.__suppress_context__ == <span class="literal">True</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">try</span>:</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        <span class="keyword">raise</span> TypeError(<span class="string">&quot;type error&quot;</span>)</span><br><span class="line">    <span class="keyword">except</span> TypeError <span class="keyword">as</span> e:</span><br><span class="line">        <span class="keyword">raise</span> ValueError(<span class="string">&quot;value error&quot;</span>) <span class="keyword">from</span> e</span><br><span class="line"><span class="keyword">except</span> ValueError <span class="keyword">as</span> e:</span><br><span class="line">    <span class="keyword">assert</span> e.__context__.__class__ == TypeError</span><br><span class="line">    <span class="keyword">assert</span> e.__cause__.__class__ == TypeError</span><br><span class="line">    <span class="keyword">assert</span> e.__suppress_context__ == <span class="literal">True</span></span><br></pre></td></tr></table></figure>
+
+<p>单独的raise语句在except代码块中使用，表示直接抛出当前异常，如果在没有异常的上下文中，则抛出RuntimeError。</p>
+<h2 id="内置Exception"><a href="#内置Exception" class="headerlink" title="内置Exception"></a>内置Exception</h2><p>Python中的内置异常可以参考官方文档中的<a target="_blank" rel="noopener" href="https://docs.python.org/zh-cn/3/library/exceptions.html?highlight=exception#exception-hierarchy">异常层次结构</a></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br></pre></td><td class="code"><pre><span class="line">BaseException</span><br><span class="line"> +-- SystemExit</span><br><span class="line"> +-- KeyboardInterrupt</span><br><span class="line"> +-- GeneratorExit</span><br><span class="line"> +-- Exception</span><br><span class="line">      +-- StopIteration</span><br><span class="line">      +-- StopAsyncIteration</span><br><span class="line">      +-- ArithmeticError</span><br><span class="line">      |    +-- FloatingPointError</span><br><span class="line">      |    +-- OverflowError</span><br><span class="line">      |    +-- ZeroDivisionError</span><br><span class="line">      +-- AssertionError</span><br><span class="line">      +-- AttributeError</span><br><span class="line">      +-- BufferError</span><br><span class="line">      +-- EOFError</span><br><span class="line">      +-- ImportError</span><br><span class="line">      |    +-- ModuleNotFoundError</span><br><span class="line">      +-- LookupError</span><br><span class="line">      |    +-- IndexError</span><br><span class="line">      |    +-- KeyError</span><br><span class="line">      +-- MemoryError</span><br><span class="line">      +-- NameError</span><br><span class="line">      |    +-- UnboundLocalError</span><br><span class="line">      +-- OSError</span><br><span class="line">      |    +-- BlockingIOError</span><br><span class="line">      |    +-- ChildProcessError</span><br><span class="line">      |    +-- ConnectionError</span><br><span class="line">      |    |    +-- BrokenPipeError</span><br><span class="line">      |    |    +-- ConnectionAbortedError</span><br><span class="line">      |    |    +-- ConnectionRefusedError</span><br><span class="line">      |    |    +-- ConnectionResetError</span><br><span class="line">      |    +-- FileExistsError</span><br><span class="line">      |    +-- FileNotFoundError</span><br><span class="line">      |    +-- InterruptedError</span><br><span class="line">      |    +-- IsADirectoryError</span><br><span class="line">      |    +-- NotADirectoryError</span><br><span class="line">      |    +-- PermissionError</span><br><span class="line">      |    +-- ProcessLookupError</span><br><span class="line">      |    +-- TimeoutError</span><br><span class="line">      +-- ReferenceError</span><br><span class="line">      +-- RuntimeError</span><br><span class="line">      |    +-- NotImplementedError</span><br><span class="line">      |    +-- RecursionError</span><br><span class="line">      +-- SyntaxError</span><br><span class="line">      |    +-- IndentationError</span><br><span class="line">      |         +-- TabError</span><br><span class="line">      +-- SystemError</span><br><span class="line">      +-- TypeError</span><br><span class="line">      +-- ValueError</span><br><span class="line">      |    +-- UnicodeError</span><br><span class="line">      |         +-- UnicodeDecodeError</span><br><span class="line">      |         +-- UnicodeEncodeError</span><br><span class="line">      |         +-- UnicodeTranslateError</span><br><span class="line">      +-- Warning</span><br><span class="line">           +-- DeprecationWarning</span><br><span class="line">           +-- PendingDeprecationWarning</span><br><span class="line">           +-- RuntimeWarning</span><br><span class="line">           +-- SyntaxWarning</span><br><span class="line">           +-- UserWarning</span><br><span class="line">           +-- FutureWarning</span><br><span class="line">           +-- ImportWarning</span><br><span class="line">           +-- UnicodeWarning</span><br><span class="line">           +-- BytesWarning</span><br><span class="line">           +-- ResourceWarning</span><br></pre></td></tr></table></figure>
+
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>一般不需要直接使用traceback模块，如果要记录程序运行中的错误信息，应当使用日志工具。但是在contextmanager对象中，<code>__exit__</code>函数使用了exc_type，exc_value，exc_traceback作为三个参数，需要在退出上下文时处理可能发生的异常，因此理解异常对象也有助于理解上下文管理器对象。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/06/15/traceback/" data-id="ckq6c9oyk0001mgpw46oohn5t" data-title="TraceBack模块和Exception类" class="article-share-link">Teilen</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/py-buildins/" rel="tag">py-buildins</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/python/" rel="tag">python</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/py-buildins/" rel="tag">py-buildins</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/python/" rel="tag">python</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/py-buildins/" style="font-size: 10px;">py-buildins</a> <a href="/tags/python/" style="font-size: 10px;">python</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archiv</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">六月 2021</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">letzter Beitrag</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2021/06/16/contexmanager/">Contextlib模块和生成器</a>
+          </li>
+        
+          <li>
+            <a href="/2021/06/15/traceback/">TraceBack模块和Exception类</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2021 DHao<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.4.1.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>
