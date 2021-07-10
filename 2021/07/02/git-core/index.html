@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>Git内部原理 | DHao&#39;s Notebook</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="初始化仓库使用git init可以将当前目录初始化成一个git仓库，然后就可以通过git命令进行版本控制。 初始后会生成一个隐藏目录.git，所有的数据都会保存到这个目录中，如下： 1234567891011121314151617181920212223242526272829303132.git│  COMMIT_EDITMSG│  config│  description│  HEAD│">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Git内部原理">
+<meta property="og:url" content="http://example.com/2021/07/02/git-core/index.html">
+<meta property="og:site_name" content="DHao&#39;s Notebook">
+<meta property="og:description" content="初始化仓库使用git init可以将当前目录初始化成一个git仓库，然后就可以通过git命令进行版本控制。 初始后会生成一个隐藏目录.git，所有的数据都会保存到这个目录中，如下： 1234567891011121314151617181920212223242526272829303132.git│  COMMIT_EDITMSG│  config│  description│  HEAD│">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-07-02T12:00:00.000Z">
+<meta property="article:modified_time" content="2021-07-10T06:13:33.673Z">
+<meta property="article:author" content="DHao">
+<meta property="article:tag" content="git">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="DHao's Notebook" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">DHao&#39;s Notebook</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Suche"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Suche"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-git-core" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/07/02/git-core/" class="article-date">
+  <time class="dt-published" datetime="2021-07-02T12:00:00.000Z" itemprop="datePublished">2021-07-02</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      Git内部原理
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="初始化仓库"><a href="#初始化仓库" class="headerlink" title="初始化仓库"></a>初始化仓库</h2><p>使用git init可以将当前目录初始化成一个git仓库，然后就可以通过git命令进行版本控制。</p>
+<p>初始后会生成一个隐藏目录.git，所有的数据都会保存到这个目录中，如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">.git</span><br><span class="line">│  COMMIT_EDITMSG</span><br><span class="line">│  config</span><br><span class="line">│  description</span><br><span class="line">│  HEAD</span><br><span class="line">│  index</span><br><span class="line">│  ORIG_HEAD</span><br><span class="line">├─hooks</span><br><span class="line">│      pre-commit.sample</span><br><span class="line">|      ...</span><br><span class="line">├─info</span><br><span class="line">│      exclude</span><br><span class="line">├─logs</span><br><span class="line">│  │  HEAD</span><br><span class="line">│  └─refs</span><br><span class="line">│      └─heads</span><br><span class="line">│              main</span><br><span class="line">|              develop</span><br><span class="line">├─objects</span><br><span class="line">│  ├─07</span><br><span class="line">│  │      a0a0c9cd9949106b27f4887aa8b14de2be751a</span><br><span class="line">│  ├─1d</span><br><span class="line">│  │      74e21965c4f858f5f818a270e64e1bfad7d843</span><br><span class="line">|  ├─...</span><br><span class="line">│  ├─info</span><br><span class="line">│  └─pack</span><br><span class="line">└─refs</span><br><span class="line">    ├─heads</span><br><span class="line">    │      main</span><br><span class="line">    |      develop</span><br><span class="line">    └─tags</span><br><span class="line">           v1.0.0</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>description 文件仅供 GitWeb 程序使用，所以不用关心这些内容。</li>
+<li>config 文件包含了项目特有的配置选项.</li>
+<li>info 目录保存了一份不希望在.gitignore 文件中管理的忽略模式 (ignored patterns) 的全局可执行文件。</li>
+<li>hooks 目录保存了客户端或服务端钩子脚本，比如常见的pre-commit。</li>
+</ul>
+<p>剩下的文件又可以分为git对象和对象的引用（指针）两大类，是git中的核心概念。</p>
+<h2 id="git对象"><a href="#git对象" class="headerlink" title="git对象"></a>git对象</h2><p>git对象都储存在目录objects中，以hash值作为文件名称，取前两位作为目录名称进行组织，可以分为以下三类：</p>
+<ul>
+<li>blob：文件对象，将文件添加到暂存区时产生。</li>
+<li>tree：目录对象，文件的集合。</li>
+<li>commit：commit对象，每次commit时产生，每个commit对象引用一个tree对象，表示该版本的文件集合，除此之外，还包括提交者、提交日期等内容。</li>
+</ul>
+<p>file对象都是通过文件的hash值进行命名的，这样只需要比较hash值就能判断文件是否相同，相同的文件不会重复储存，如果多个版本中都包含同一个文件，那么最终引用的都是同一个对象。计算文件的hash值时，仅包括文件的内容，不包括文件的元信息。</p>
+<p>tree对象的内容是引用的文件对象和目录对象，一般不会涉及到，其中储存了文件的hash值和部分元信息，包括实际的文件名，权限等，但是不包括文件的最近修改时间。</p>
+<p>commit对象也有一个hash值作为名称，部分操作需要指定特定commit对象时，就需要用到这个hash值，不用完整地输入hash值，前几位即可，只要保证唯一性就行。由于commit对象包括了时间信息，几乎不可能存在两个相同的commit对象。</p>
+<h2 id="查看git对象内容"><a href="#查看git对象内容" class="headerlink" title="查看git对象内容"></a>查看git对象内容</h2><p>git对象不能直接用编辑器查看，使用git cat-file命令可以查看git对象的内容，使用之前必须知道git对象的hash值。</p>
+<ul>
+<li>-p选项：显示内容</li>
+<li>-s选项：显示大小</li>
+<li>-t选项：显示类型</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash">git <span class="built_in">log</span> --oneline</span></span><br><span class="line">02cf32c (HEAD -&gt; main) add c d</span><br><span class="line">41bdeb2 add .gitignore,a,b</span><br><span class="line"><span class="meta">#</span><span class="bash"> 查看commit对象</span></span><br><span class="line"><span class="meta">$</span><span class="bash">git cat-file -p 02cf32c</span></span><br><span class="line">tree 4d2a9ea5c62cde818b0c7b9c6819c083e3bbe72f     </span><br><span class="line">parent 41bdeb25da07ef0f6c471b6a08e6c71019aeb046   </span><br><span class="line">author Dean &lt;***@163.com&gt; 1625836413 +0800   </span><br><span class="line">committer Dean &lt;***@163.com&gt; 1625836413 +0800</span><br><span class="line"></span><br><span class="line">add c d</span><br><span class="line"><span class="meta">#</span><span class="bash"> 查看tree对象</span></span><br><span class="line"><span class="meta">$</span><span class="bash">git cat-file -p 4d2a9e</span> </span><br><span class="line">100644 blob 1d74e21965c4f858f5f818a270e64e1bfad7d843    .gitignore</span><br><span class="line">100644 blob 78981922613b2afb6025042ff6bd878ac1994e85    a</span><br><span class="line">100644 blob 61780798228d17af2d34fce4cfbdf35556832472    b</span><br><span class="line">100644 blob f2ad6c76f0115a6ba5b00456a849810e7ec0af20    c</span><br><span class="line">100644 blob 4bcfe98e640c8284511312660fb8709b0afa888e    d</span><br></pre></td></tr></table></figure>
+
+<h2 id="引用"><a href="#引用" class="headerlink" title="引用"></a>引用</h2><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">└─refs</span><br><span class="line">    ├─heads</span><br><span class="line">    │      main</span><br><span class="line">    |      develop</span><br><span class="line">    └─tags</span><br><span class="line">           v1.0.0</span><br></pre></td></tr></table></figure>
+
+<p>refs目录中，有heads和tags两个目录，分别储存分支和标签的指针，文件名就是对应的分支名称和标签名称，文件内容是对应的commit对象名称，引用本质上就是commit对象的一个便于记忆的别名。</p>
+<p>在.git目录中还有一个HEAD文件，HEAD是对分支的引用。</p>
+<p>HEAD指向分支，分支指向commit对象，切换分支时，只需要改变HEAD的值即可，提交或撤销提交时，只需要改变当前分支的值即可，HEAD的最终指向自然会跟着改变。</p>
+<p>对某一分支来说，commit是线性提交的，commit对象也存储了上一个commit对象的哈希值，如果我们需要上一次或上几次commit对象的哈希值，可以通过查询日志的方式获取上一次commit的哈希值，也可以通过HEAD^、HEAD^^或HEAD<del>1、HEAD</del>2直接引用。</p>
+<h2 id="引用日志"><a href="#引用日志" class="headerlink" title="引用日志"></a>引用日志</h2><p>引用日志（reflog）比日志（log）的范围更广，比如说通过commit提交了一个记录，然后发现存在问题又用reset命令撤销了，通过log命令是查不到相关记录的，但是reflog命令仍然可以查到相关的记录，包括被撤销的commit对象的哈希值。</p>
+<p>即使没有引用日志，也照常可以使用git log命令，因为日志实际上是储存在commit对象中的，跟引用日志没有直接关系，引用日志只会影响垃圾回收的行为。</p>
+<p>涉及到commit对象的相关命令都会被记录下来，被删除的commit不会立即回收，如果误删除了某个commit，在log中找不到了，还可以尝试在reflog中找一找。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> reflog目录树</span></span><br><span class="line">├─logs</span><br><span class="line">   │  HEAD</span><br><span class="line">   └─refs</span><br><span class="line">       └─heads</span><br><span class="line">               main</span><br><span class="line">               develop</span><br></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 主reflog</span></span><br><span class="line"><span class="meta">$</span><span class="bash">git reflog</span></span><br><span class="line">d451161 (HEAD -&gt; main) HEAD@&#123;0&#125;: merge develop: Merge made by the &#x27;recursive&#x27; strategy.</span><br><span class="line">ecadb0e HEAD@&#123;1&#125;: checkout: moving from develop to main</span><br><span class="line">2f8abd8 (develop) HEAD@&#123;2&#125;: commit: update d</span><br><span class="line">ecadb0e HEAD@&#123;4&#125;: commit: add dev</span><br><span class="line">02cf32c HEAD@&#123;5&#125;: commit: add c d</span><br><span class="line">41bdeb2 HEAD@&#123;6&#125;: commit (initial): add .gitignore,a,b</span><br><span class="line"><span class="meta">#</span><span class="bash"> main分支reflog</span></span><br><span class="line"><span class="meta">$</span><span class="bash">git reflog main</span></span><br><span class="line">d451161 (HEAD -&gt; main) main@&#123;0&#125;: merge develop: Merge made by the &#x27;recursive&#x27; strategy.</span><br><span class="line">ecadb0e main@&#123;1&#125;: commit: add dev</span><br><span class="line">02cf32c main@&#123;2&#125;: commit: add c d</span><br><span class="line">41bdeb2 main@&#123;3&#125;: commit (initial): add .gitignore,a,b</span><br><span class="line"><span class="meta">#</span><span class="bash"> decelop分支reflog</span></span><br><span class="line"><span class="meta">$</span><span class="bash">git reflog develop</span></span><br><span class="line">2f8abd8 (develop) develop@&#123;0&#125;: commit: update d</span><br><span class="line">02cf32c develop@&#123;1&#125;: branch: Created from main</span><br></pre></td></tr></table></figure>
+
+<p>可以看到，在不同分支上进行的commit会记录到对应的文件中，同时还会记录到log/HEAD（主reflog）中，因此分支中的commit被引用了两次，即使删除了分支仍然还是存在引用，会影响到垃圾回收。</p>
+<h2 id="垃圾回收"><a href="#垃圾回收" class="headerlink" title="垃圾回收"></a>垃圾回收</h2><p>git对象对内容进行hash计算，最小单元是文件。即使两个文件只有很小的差异，仍然会创建两个完整的对象，消耗双倍的空间，而在版本控制中，这是很常见的情况。</p>
+<p>git不会立即删除不再需要的git对象，git对象数量只增不减，只有垃圾回收时才会删除冗余的对象。例如，当把文件加入暂存区时创建了一个git对象，更新文件时又会重新创建一个git对象，一个文件在提交前暂存了好几次是常见的。</p>
+<p>当撤销一个commit时，我们不希望立即从数据库中删除，希望能在一定时间范围内提供恢复的途径，所以git中有reflog的概念，涉及到commit的操作会记录到reflog中，垃圾回收时不会删除引用日志中存在的对象。</p>
+<p>基于上述原因，我们需要git gc来管理git对象。git gc不仅仅是删除冗余对象，包含了以下工作：</p>
+<ul>
+<li>pack-refs：将refs/heads和ref/tags目录下的引用打包到一个文件中（packed-refs）</li>
+<li>reflog expire：默认情况下清除超过90天的reflog记录，以及清除超过30天且不再需要的reflog记录（比如说提交一个commit，又将其删除了，那么30天后，与这个commit相关的reflog记录会被删除）</li>
+<li>repack：将日志和引用日志中的对象打包，其余的以松散对象的形式存在，不会被立即删除，由于git对象中存在大量重复内容，打包后会节省大量的空间。</li>
+<li>prune：默认情况下删除超过14天的松散对象，主要针对暂存时产生的git对象，既没有被日志引用，也没有被引用日志引用，但是作为松散对象仍然可以保留14天。</li>
+</ul>
+<p>也就是说，一个commit从日志中删除，30天后，从引用日志中删除，不再被打包，以松散对象的形式存在，显然已经超过14天，立即被彻底删除。而对于日志中存在的commit，只是90天后从引用日志中删除记录，永远不会被删除。</p>
+<p>手动删除reflog内容（一般不需要这么做）</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 提交a，b，然后撤销b</span></span><br><span class="line"><span class="meta">$</span><span class="bash">git <span class="built_in">log</span> --oneline</span></span><br><span class="line">13ea0df (HEAD -&gt; main) a</span><br><span class="line"><span class="meta">$</span><span class="bash">git reflog</span></span><br><span class="line">13ea0df (HEAD -&gt; main) HEAD@&#123;0&#125;: reset: moving to HEAD^</span><br><span class="line">51b9f9f HEAD@&#123;1&#125;: commit: b</span><br><span class="line">13ea0df (HEAD -&gt; main) HEAD@&#123;2&#125;: commit (initial): a</span><br><span class="line"><span class="meta">#</span><span class="bash"> 删除所有reflog</span></span><br><span class="line"><span class="meta">$</span><span class="bash">git reflog expire --dry-run --expire=now -all</span></span><br><span class="line">usage: git reflog expire [--expire=&lt;time&gt;] [--expire-unreachable=&lt;time&gt;] [--rewrite] [--updateref]$git reflog expire --dry-run --expire=now --all</span><br><span class="line">would prune commit (initial): a</span><br><span class="line">would prune commit: b</span><br><span class="line">would prune reset: moving to HEAD^</span><br><span class="line">would prune commit (initial): a</span><br><span class="line">would prune commit: b</span><br><span class="line">would prune reset: moving to HEAD^</span><br><span class="line"><span class="meta">#</span><span class="bash"> 删除所有过期1天的reflog</span></span><br><span class="line"><span class="meta">$</span><span class="bash">git reflog expire --dry-run --expire=1.day.ago --all</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 删除所有不再需要的reflog</span></span><br><span class="line"><span class="meta">$</span><span class="bash">git reflog expire --dry-run --expire-unreachable=now --all</span></span><br><span class="line">would prune commit: b</span><br><span class="line">would prune reset: moving to HEAD^</span><br><span class="line">would prune commit: b</span><br><span class="line">would prune reset: moving to HEAD^</span><br><span class="line"><span class="meta">#</span><span class="bash"> 删除所有不再需要且过期1天的reflog</span></span><br><span class="line"><span class="meta">$</span><span class="bash">git reflog expire --dry-run --expire-unreachable=1.day.ago --all</span></span><br></pre></td></tr></table></figure>
+<p>手动删除未被引用的松散对象（一般不需要这么做）</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 存在一个未被引用的对象</span></span><br><span class="line"><span class="meta">$</span><span class="bash">git prune --expire=now --dry-run</span></span><br><span class="line">e9944e6b6458a035017ff91e4b41de9f60fcc34b blob</span><br><span class="line"><span class="meta">$</span><span class="bash">git gc</span></span><br><span class="line">Enumerating objects: 3, done.</span><br><span class="line">Counting objects: 100% (3/3), done.</span><br><span class="line">Writing objects: 100% (3/3), done.</span><br><span class="line">Total 3 (delta 0), reused 3 (delta 0), pack-reused 0</span><br><span class="line"><span class="meta">#</span><span class="bash"> gc并没有立即回收，因为没有过期14天</span></span><br><span class="line"><span class="meta">$</span><span class="bash">ls .git/objects</span></span><br><span class="line">d-----         2021/7/10     13:55                e9</span><br><span class="line">d-----         2021/7/10     13:57                info</span><br><span class="line">d-----         2021/7/10     13:57                pack</span><br><span class="line"><span class="meta">#</span><span class="bash"> 传入参数--expire=now，立即回收</span></span><br><span class="line"><span class="meta">$</span><span class="bash">git gc --prune=now</span></span><br><span class="line">Enumerating objects: 3, done.</span><br><span class="line">Counting objects: 100% (3/3), done.</span><br><span class="line">Writing objects: 100% (3/3), done.</span><br><span class="line">Total 3 (delta 0), reused 3 (delta 0), pack-reused 0</span><br><span class="line"><span class="meta">#</span><span class="bash"> 成功</span></span><br><span class="line"><span class="meta">$</span><span class="bash">ls .git/objects</span></span><br><span class="line">d-----         2021/7/10     13:57                info</span><br><span class="line">d-----         2021/7/10     13:57                pack</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/07/02/git-core/" data-id="ckqxn5olc00012kpwbeqqci60" data-title="Git内部原理" class="article-share-link">Teilen</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/git/" rel="tag">git</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2021/07/04/git-basic/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Neuer</strong>
+      <div class="article-nav-title">
+        
+          Git基本操作
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2021/06/18/nginx/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Älter</strong>
+      <div class="article-nav-title">Nginx配置</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/git/" rel="tag">git</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nginx/" rel="tag">nginx</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/python/" rel="tag">python</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/git/" style="font-size: 20px;">git</a> <a href="/tags/nginx/" style="font-size: 10px;">nginx</a> <a href="/tags/python/" style="font-size: 20px;">python</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archiv</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">七月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">六月 2021</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">letzter Beitrag</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2021/07/04/git-basic/">Git基本操作</a>
+          </li>
+        
+          <li>
+            <a href="/2021/07/02/git-core/">Git内部原理</a>
+          </li>
+        
+          <li>
+            <a href="/2021/06/18/nginx/">Nginx配置</a>
+          </li>
+        
+          <li>
+            <a href="/2021/06/16/contexmanager/">Contextlib模块和生成器</a>
+          </li>
+        
+          <li>
+            <a href="/2021/06/15/traceback/">TraceBack模块和Exception类</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2021 DHao<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.4.1.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

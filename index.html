@@ -73,6 +73,301 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-git-basic" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/07/04/git-basic/" class="article-date">
+  <time class="dt-published" datetime="2021-07-04T14:00:00.000Z" itemprop="datePublished">2021-07-04</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/07/04/git-basic/">Git基本操作</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="基本操作"><a href="#基本操作" class="headerlink" title="基本操作"></a>基本操作</h2><h3 id="检查当前文件状态"><a href="#检查当前文件状态" class="headerlink" title="检查当前文件状态"></a>检查当前文件状态</h3><p>使用git status命令可以列出工作区、暂存区和本地仓库之间状态不同的文件，如果使用了-ignored选项，还可以列出工作区中已忽略的文件，主要包含以几种：</p>
+<ul>
+<li>Changes to be committed：指暂存区与本地仓库之间存在差异的文件列表<ul>
+<li>commit命令：暂存区=&gt;本地仓库</li>
+<li>restore –staged命令：本地仓库=&gt;暂存区</li>
+</ul>
+</li>
+<li>Changes not staged for commit：指工作区与暂存区之间存在差异的文件列表<ul>
+<li>add 命令：工作区=&gt;暂存区</li>
+<li>restore命令：暂存区=&gt;工作区</li>
+</ul>
+</li>
+<li>Untracked files：未追踪的文件，通过add命令添加到暂存区，如果文件在.gitignore中设置为忽略，则add命令不会添加</li>
+<li>Ignored files：使用–ignored选项后列出以忽略的文件，可以通过-f选项强制添加到暂存区</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash">git status --ignored</span></span><br><span class="line">On branch main</span><br><span class="line">Changes to be committed:</span><br><span class="line">  (use &quot;git restore --staged &lt;file&gt;...&quot; to unstage)</span><br><span class="line">        new file:   .gitignore</span><br><span class="line">        new file:   b</span><br><span class="line"></span><br><span class="line">Changes not staged for commit:</span><br><span class="line">  (use &quot;git add &lt;file&gt;...&quot; to update what will be committed)</span><br><span class="line">  (use &quot;git restore &lt;file&gt;...&quot; to discard changes in working directory)</span><br><span class="line">        modified:   b</span><br><span class="line"></span><br><span class="line">Untracked files:</span><br><span class="line">  (use &quot;git add &lt;file&gt;...&quot; to include in what will be committed)</span><br><span class="line">        c</span><br><span class="line"></span><br><span class="line">Ignored files:</span><br><span class="line">  (use &quot;git add -f &lt;file&gt;...&quot; to include in what will be committed)</span><br><span class="line">        .vscode/</span><br></pre></td></tr></table></figure>
+
+<p>使用-s选项可以列出文件状态简写模式，包括??，A，M，D，等，??表示Untracked files，A表示新增文件，M表示文件修改，D表示文件被删除。输出的第一列是暂存区与本地仓库之间相比较，第二列是工作区与暂存区之间相比较。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash">git status -s</span></span><br><span class="line">M  a</span><br><span class="line"> M b</span><br><span class="line">D  c</span><br></pre></td></tr></table></figure>
+
+<h3 id="添加：工作区-gt-暂存区"><a href="#添加：工作区-gt-暂存区" class="headerlink" title="添加：工作区=&gt;暂存区"></a>添加：工作区=&gt;暂存区</h3><p>git add .命令可以更新工作区中的所有文件，包括已删除的文件和新增的文件，也可以通过git add file 或git add *.py添加和匹配特定的文件。</p>
+<ul>
+<li><p>-n，–dry-run选项：用于测试，输出该命令会add的文件列表，但是实际上不会添加文件</p>
+</li>
+<li><p>-u，–update选项：更新文件，不包括Untracked files</p>
+</li>
+<li><p>-A，–all选项：添加所有文件，与git add .相似</p>
+</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 初始状态</span></span><br><span class="line"><span class="meta">$</span><span class="bash">git status -s</span> </span><br><span class="line"> M b</span><br><span class="line"> D c</span><br><span class="line">?? d</span><br><span class="line"><span class="meta">#</span><span class="bash"> 添加全部</span></span><br><span class="line"><span class="meta">$</span><span class="bash">git add --dry-run .</span></span><br><span class="line">add &#x27;b&#x27;</span><br><span class="line">remove &#x27;c&#x27;</span><br><span class="line">add &#x27;d&#x27;</span><br><span class="line"><span class="meta">#</span><span class="bash"> 添加全部</span></span><br><span class="line"><span class="meta">$</span><span class="bash">git add --dry-run -A</span></span><br><span class="line">add &#x27;b&#x27;</span><br><span class="line">remove &#x27;c&#x27;</span><br><span class="line">add &#x27;d&#x27;</span><br><span class="line"><span class="meta">#</span><span class="bash"> 更新</span></span><br><span class="line"><span class="meta">$</span><span class="bash">git add --dry-run -u</span></span><br><span class="line">add &#x27;b&#x27;</span><br><span class="line">remove &#x27;c&#x27;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>-f选项：强制添加已忽略的文件</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> git add ./.vscode/settings.json</span></span><br><span class="line">The following paths are ignored by one of your .gitignore files:</span><br><span class="line">.vscode</span><br><span class="line">hint: Use -f if you really want to add them.</span><br><span class="line">hint: Turn this message off by running</span><br><span class="line">hint: &quot;git config advice.addIgnoredFile false&quot;</span><br></pre></td></tr></table></figure>
+
+<h3 id="删除和移动文件"><a href="#删除和移动文件" class="headerlink" title="删除和移动文件"></a>删除和移动文件</h3><p>普通的删除命令和移动命令只能改变工作区的内容，git rm file和git mv file同时在工作区和暂存区中进行删除和移动，相当于执行删除和移动指令后再自动执行add命令</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash">git status -s</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 普通mv命令</span></span><br><span class="line"><span class="meta">$</span><span class="bash">mv a dir/</span>    </span><br><span class="line"><span class="meta">$</span><span class="bash">git status -s</span></span><br><span class="line"> D a</span><br><span class="line">?? dir/</span><br><span class="line"><span class="meta">#</span><span class="bash"> git mv命令</span></span><br><span class="line"><span class="meta">$</span><span class="bash">mv dir/a .</span></span><br><span class="line"><span class="meta">$</span><span class="bash">git mv a dir/</span></span><br><span class="line"><span class="meta">$</span><span class="bash">git status -s</span></span><br><span class="line">R  a -&gt; dir/a</span><br></pre></td></tr></table></figure>
+
+<p>git rm –cached可以仅删除暂存区文件而保留工作区。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash">git status -s</span></span><br><span class="line"><span class="meta">$</span><span class="bash">git rm --cached d</span>    </span><br><span class="line">rm &#x27;d&#x27;</span><br><span class="line"><span class="meta">$</span><span class="bash">git status -s</span>  </span><br><span class="line">D  d</span><br><span class="line">?? d</span><br></pre></td></tr></table></figure>
+
+<h3 id="提交：暂存区-gt-本地仓库"><a href="#提交：暂存区-gt-本地仓库" class="headerlink" title="提交：暂存区=&gt;本地仓库"></a>提交：暂存区=&gt;本地仓库</h3><p>git commit命令将暂存区内容提交到本地仓库，每一次提交都会产生一个记录，不像工作区和暂存区都是临时的内容。</p>
+<ul>
+<li>-m选项：为commit添加注释</li>
+<li>-a选择：相当于提交前自动执行git add -u，不能添加新增文件</li>
+<li>-amend选项：自动打开编辑器，在交互界面修改，并重新提交</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash">git add a</span></span><br><span class="line"><span class="meta">$</span><span class="bash">git commit -m <span class="string">&#x27;add a&#x27;</span></span></span><br><span class="line">[main 7d6d31f] add a</span><br><span class="line"> 1 file changed, 0 insertions(+), 0 deletions(-)</span><br><span class="line"><span class="meta">$</span><span class="bash"><span class="built_in">echo</span> <span class="string">&#x27;a&#x27;</span>&gt;&gt;a</span></span><br><span class="line"><span class="meta">$</span><span class="bash">git commit -am <span class="string">&#x27;uadate a&#x27;</span></span></span><br><span class="line">[main ccd2901] uadate a</span><br><span class="line"> 1 file changed, 0 insertions(+), 0 deletions(-)</span><br><span class="line"><span class="meta">$</span><span class="bash">git commit --amend</span></span><br><span class="line">[main df17222] uadate a-amend</span><br><span class="line"> Date: Sat Jul 10 14:51:07 2021 +0800</span><br><span class="line"> 1 file changed, 0 insertions(+), 0 deletions(-)</span><br><span class="line"><span class="meta">$</span><span class="bash">git reflog</span></span><br><span class="line">df17222 (HEAD -&gt; main) HEAD@&#123;0&#125;: commit (amend): uadate a-amend</span><br><span class="line">ccd2901 HEAD@&#123;1&#125;: commit: uadate a</span><br><span class="line">7d6d31f HEAD@&#123;2&#125;: commit: add a</span><br><span class="line">cd65852 HEAD@&#123;3&#125;: commit (initial): init</span><br><span class="line"><span class="meta">$</span><span class="bash">git <span class="built_in">log</span> --oneline</span></span><br><span class="line">df17222 (HEAD -&gt; main) uadate a-amend</span><br><span class="line">7d6d31f add a</span><br><span class="line">cd65852 init</span><br></pre></td></tr></table></figure>
+
+<p>使用amend选项不仅修改了提交信息，还自动修改了提交时间，第一行为创建commit的时间，第二行为最后一次提交的时间。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash">git cat-file -p HEAD</span></span><br><span class="line">tree 9a240dd9ae29571d3bffe5cfa7fcc27c316c2f06</span><br><span class="line">parent 7d6d31f93f2ef5326ff2526eafc23cdb2ed00922</span><br><span class="line">author Dean &lt;dhao1024@163.com&gt; 1625899867 +0800</span><br><span class="line">committer Dean &lt;dhao1024@163.com&gt; 1625899891 +0800</span><br><span class="line"></span><br><span class="line">uadate a-amend</span><br></pre></td></tr></table></figure>
+
+<h3 id="撤销：本地仓库-gt-暂存区-gt-工作区"><a href="#撤销：本地仓库-gt-暂存区-gt-工作区" class="headerlink" title="撤销：本地仓库=&gt;暂存区=&gt;工作区"></a>撤销：本地仓库=&gt;暂存区=&gt;工作区</h3><p>git restore命令可以将暂存区的内容替换工作区的内容，使用–staged选项可以将当前本地仓库的内容（HEAD）替换暂存区的内容。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash">git status -s</span></span><br><span class="line">M  d</span><br><span class="line"><span class="meta">#</span><span class="bash"> 本地仓库=&gt;暂存区</span></span><br><span class="line"><span class="meta">$</span><span class="bash">git restore --staged d</span></span><br><span class="line"><span class="meta">$</span><span class="bash">git status -s</span></span><br><span class="line"> M d</span><br><span class="line"><span class="meta">#</span><span class="bash"> 暂存区=&gt;工作区</span></span><br><span class="line"><span class="meta">$</span><span class="bash">git restore d</span></span><br><span class="line"><span class="meta">$</span><span class="bash">git status -s</span></span><br></pre></td></tr></table></figure>
+
+<p>git reset commit-hash命令可以将HEAD指针移动到指定的commit上，通常用于撤销commit，同时还可以替换暂存区和工作区，具有以下模式</p>
+<ul>
+<li>–hard：同时重置暂存区和工作区</li>
+<li>–soft：既不重置暂存区也不重置工作区</li>
+<li>–mixed(默认)：只重置暂存区，保留工作区</li>
+<li>–merge：暂未使用</li>
+<li>–keep：重置暂存区和工作区，但是如果文件在本地修改了，则终止reset</li>
+</ul>
+<h2 id="分支管理"><a href="#分支管理" class="headerlink" title="分支管理"></a>分支管理</h2><h3 id="创建和删除分支"><a href="#创建和删除分支" class="headerlink" title="创建和删除分支"></a>创建和删除分支</h3><ul>
+<li>git branch dev：在当前HEAD处创建分支dev</li>
+<li>git branch dev commit-hash：在指定commit处创建分支dev</li>
+<li>git branch -m new：分支重命名（当前分支=&gt;new）</li>
+<li>git branch -m old new：分支重命名（old=&gt;new）</li>
+<li>git branch -d dev：删除分支dev</li>
+<li>git branch -D dev：强制删除未合并的分支dev</li>
+<li>git branch -c dev：复制分支（复制reflog）</li>
+</ul>
+<h3 id="合并分支"><a href="#合并分支" class="headerlink" title="合并分支"></a>合并分支</h3><ul>
+<li>git merge dev：</li>
+<li>git merge –continue:</li>
+<li>git merge –abort:</li>
+</ul>
+<h2 id="远程仓库"><a href="#远程仓库" class="headerlink" title="远程仓库"></a>远程仓库</h2><h3 id="添加和查看远程仓库"><a href="#添加和查看远程仓库" class="headerlink" title="添加和查看远程仓库"></a>添加和查看远程仓库</h3><ul>
+<li>git remote add [name] [url]：添加远程仓库</li>
+<li>git remote show [name]：查看远程仓库</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash">git remote show origin</span></span><br><span class="line">* remote origin</span><br><span class="line">  Fetch URL: https://github.com.cnpmjs.org/dhao1024/git-test</span><br><span class="line">  Push  URL: https://github.com.cnpmjs.org/dhao1024/git-test</span><br><span class="line">  HEAD branch: main</span><br><span class="line">  Remote branches:</span><br><span class="line">    br   tracked</span><br><span class="line">    main tracked</span><br><span class="line">  Local branches configured for &#x27;git pull&#x27;:</span><br><span class="line">    br   merges with remote br</span><br><span class="line">    main merges with remote main</span><br><span class="line">  Local refs configured for &#x27;git push&#x27;:</span><br><span class="line">    br   pushes to br   (up to date)</span><br><span class="line">    main pushes to main (up to date)</span><br></pre></td></tr></table></figure>
+
+<h3 id="远程仓库配置"><a href="#远程仓库配置" class="headerlink" title="远程仓库配置"></a>远程仓库配置</h3><p>添加远程仓库，并建立本地仓库和远程仓库之间分支的映射关系后的配置如下，配置文件在.git/config中，但是我们一般不直接修改这个文件，git push -u命令可以自动在远程仓库新建一个分支并添加到配置文件中。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">[remote &quot;origin&quot;]</span><br><span class="line">	url = giturl://dhao1024/git-test</span><br><span class="line">	fetch = +refs/heads/*:refs/remotes/origin/*</span><br><span class="line">[branch &quot;main&quot;]</span><br><span class="line">	remote = origin</span><br><span class="line">	merge = refs/heads/main</span><br><span class="line">[branch &quot;br&quot;]</span><br><span class="line">	remote = origin</span><br><span class="line">	merge = refs/heads/br</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/07/04/git-basic/" data-id="ckqxn5ol500002kpwhd6i54w8" data-title="Git基本操作" class="article-share-link">Teilen</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/git/" rel="tag">git</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-git-core" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/07/02/git-core/" class="article-date">
+  <time class="dt-published" datetime="2021-07-02T12:00:00.000Z" itemprop="datePublished">2021-07-02</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/07/02/git-core/">Git内部原理</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="初始化仓库"><a href="#初始化仓库" class="headerlink" title="初始化仓库"></a>初始化仓库</h2><p>使用git init可以将当前目录初始化成一个git仓库，然后就可以通过git命令进行版本控制。</p>
+<p>初始后会生成一个隐藏目录.git，所有的数据都会保存到这个目录中，如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">.git</span><br><span class="line">│  COMMIT_EDITMSG</span><br><span class="line">│  config</span><br><span class="line">│  description</span><br><span class="line">│  HEAD</span><br><span class="line">│  index</span><br><span class="line">│  ORIG_HEAD</span><br><span class="line">├─hooks</span><br><span class="line">│      pre-commit.sample</span><br><span class="line">|      ...</span><br><span class="line">├─info</span><br><span class="line">│      exclude</span><br><span class="line">├─logs</span><br><span class="line">│  │  HEAD</span><br><span class="line">│  └─refs</span><br><span class="line">│      └─heads</span><br><span class="line">│              main</span><br><span class="line">|              develop</span><br><span class="line">├─objects</span><br><span class="line">│  ├─07</span><br><span class="line">│  │      a0a0c9cd9949106b27f4887aa8b14de2be751a</span><br><span class="line">│  ├─1d</span><br><span class="line">│  │      74e21965c4f858f5f818a270e64e1bfad7d843</span><br><span class="line">|  ├─...</span><br><span class="line">│  ├─info</span><br><span class="line">│  └─pack</span><br><span class="line">└─refs</span><br><span class="line">    ├─heads</span><br><span class="line">    │      main</span><br><span class="line">    |      develop</span><br><span class="line">    └─tags</span><br><span class="line">           v1.0.0</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>description 文件仅供 GitWeb 程序使用，所以不用关心这些内容。</li>
+<li>config 文件包含了项目特有的配置选项.</li>
+<li>info 目录保存了一份不希望在.gitignore 文件中管理的忽略模式 (ignored patterns) 的全局可执行文件。</li>
+<li>hooks 目录保存了客户端或服务端钩子脚本，比如常见的pre-commit。</li>
+</ul>
+<p>剩下的文件又可以分为git对象和对象的引用（指针）两大类，是git中的核心概念。</p>
+<h2 id="git对象"><a href="#git对象" class="headerlink" title="git对象"></a>git对象</h2><p>git对象都储存在目录objects中，以hash值作为文件名称，取前两位作为目录名称进行组织，可以分为以下三类：</p>
+<ul>
+<li>blob：文件对象，将文件添加到暂存区时产生。</li>
+<li>tree：目录对象，文件的集合。</li>
+<li>commit：commit对象，每次commit时产生，每个commit对象引用一个tree对象，表示该版本的文件集合，除此之外，还包括提交者、提交日期等内容。</li>
+</ul>
+<p>file对象都是通过文件的hash值进行命名的，这样只需要比较hash值就能判断文件是否相同，相同的文件不会重复储存，如果多个版本中都包含同一个文件，那么最终引用的都是同一个对象。计算文件的hash值时，仅包括文件的内容，不包括文件的元信息。</p>
+<p>tree对象的内容是引用的文件对象和目录对象，一般不会涉及到，其中储存了文件的hash值和部分元信息，包括实际的文件名，权限等，但是不包括文件的最近修改时间。</p>
+<p>commit对象也有一个hash值作为名称，部分操作需要指定特定commit对象时，就需要用到这个hash值，不用完整地输入hash值，前几位即可，只要保证唯一性就行。由于commit对象包括了时间信息，几乎不可能存在两个相同的commit对象。</p>
+<h2 id="查看git对象内容"><a href="#查看git对象内容" class="headerlink" title="查看git对象内容"></a>查看git对象内容</h2><p>git对象不能直接用编辑器查看，使用git cat-file命令可以查看git对象的内容，使用之前必须知道git对象的hash值。</p>
+<ul>
+<li>-p选项：显示内容</li>
+<li>-s选项：显示大小</li>
+<li>-t选项：显示类型</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash">git <span class="built_in">log</span> --oneline</span></span><br><span class="line">02cf32c (HEAD -&gt; main) add c d</span><br><span class="line">41bdeb2 add .gitignore,a,b</span><br><span class="line"><span class="meta">#</span><span class="bash"> 查看commit对象</span></span><br><span class="line"><span class="meta">$</span><span class="bash">git cat-file -p 02cf32c</span></span><br><span class="line">tree 4d2a9ea5c62cde818b0c7b9c6819c083e3bbe72f     </span><br><span class="line">parent 41bdeb25da07ef0f6c471b6a08e6c71019aeb046   </span><br><span class="line">author Dean &lt;***@163.com&gt; 1625836413 +0800   </span><br><span class="line">committer Dean &lt;***@163.com&gt; 1625836413 +0800</span><br><span class="line"></span><br><span class="line">add c d</span><br><span class="line"><span class="meta">#</span><span class="bash"> 查看tree对象</span></span><br><span class="line"><span class="meta">$</span><span class="bash">git cat-file -p 4d2a9e</span> </span><br><span class="line">100644 blob 1d74e21965c4f858f5f818a270e64e1bfad7d843    .gitignore</span><br><span class="line">100644 blob 78981922613b2afb6025042ff6bd878ac1994e85    a</span><br><span class="line">100644 blob 61780798228d17af2d34fce4cfbdf35556832472    b</span><br><span class="line">100644 blob f2ad6c76f0115a6ba5b00456a849810e7ec0af20    c</span><br><span class="line">100644 blob 4bcfe98e640c8284511312660fb8709b0afa888e    d</span><br></pre></td></tr></table></figure>
+
+<h2 id="引用"><a href="#引用" class="headerlink" title="引用"></a>引用</h2><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">└─refs</span><br><span class="line">    ├─heads</span><br><span class="line">    │      main</span><br><span class="line">    |      develop</span><br><span class="line">    └─tags</span><br><span class="line">           v1.0.0</span><br></pre></td></tr></table></figure>
+
+<p>refs目录中，有heads和tags两个目录，分别储存分支和标签的指针，文件名就是对应的分支名称和标签名称，文件内容是对应的commit对象名称，引用本质上就是commit对象的一个便于记忆的别名。</p>
+<p>在.git目录中还有一个HEAD文件，HEAD是对分支的引用。</p>
+<p>HEAD指向分支，分支指向commit对象，切换分支时，只需要改变HEAD的值即可，提交或撤销提交时，只需要改变当前分支的值即可，HEAD的最终指向自然会跟着改变。</p>
+<p>对某一分支来说，commit是线性提交的，commit对象也存储了上一个commit对象的哈希值，如果我们需要上一次或上几次commit对象的哈希值，可以通过查询日志的方式获取上一次commit的哈希值，也可以通过HEAD^、HEAD^^或HEAD<del>1、HEAD</del>2直接引用。</p>
+<h2 id="引用日志"><a href="#引用日志" class="headerlink" title="引用日志"></a>引用日志</h2><p>引用日志（reflog）比日志（log）的范围更广，比如说通过commit提交了一个记录，然后发现存在问题又用reset命令撤销了，通过log命令是查不到相关记录的，但是reflog命令仍然可以查到相关的记录，包括被撤销的commit对象的哈希值。</p>
+<p>即使没有引用日志，也照常可以使用git log命令，因为日志实际上是储存在commit对象中的，跟引用日志没有直接关系，引用日志只会影响垃圾回收的行为。</p>
+<p>涉及到commit对象的相关命令都会被记录下来，被删除的commit不会立即回收，如果误删除了某个commit，在log中找不到了，还可以尝试在reflog中找一找。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> reflog目录树</span></span><br><span class="line">├─logs</span><br><span class="line">   │  HEAD</span><br><span class="line">   └─refs</span><br><span class="line">       └─heads</span><br><span class="line">               main</span><br><span class="line">               develop</span><br></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 主reflog</span></span><br><span class="line"><span class="meta">$</span><span class="bash">git reflog</span></span><br><span class="line">d451161 (HEAD -&gt; main) HEAD@&#123;0&#125;: merge develop: Merge made by the &#x27;recursive&#x27; strategy.</span><br><span class="line">ecadb0e HEAD@&#123;1&#125;: checkout: moving from develop to main</span><br><span class="line">2f8abd8 (develop) HEAD@&#123;2&#125;: commit: update d</span><br><span class="line">ecadb0e HEAD@&#123;4&#125;: commit: add dev</span><br><span class="line">02cf32c HEAD@&#123;5&#125;: commit: add c d</span><br><span class="line">41bdeb2 HEAD@&#123;6&#125;: commit (initial): add .gitignore,a,b</span><br><span class="line"><span class="meta">#</span><span class="bash"> main分支reflog</span></span><br><span class="line"><span class="meta">$</span><span class="bash">git reflog main</span></span><br><span class="line">d451161 (HEAD -&gt; main) main@&#123;0&#125;: merge develop: Merge made by the &#x27;recursive&#x27; strategy.</span><br><span class="line">ecadb0e main@&#123;1&#125;: commit: add dev</span><br><span class="line">02cf32c main@&#123;2&#125;: commit: add c d</span><br><span class="line">41bdeb2 main@&#123;3&#125;: commit (initial): add .gitignore,a,b</span><br><span class="line"><span class="meta">#</span><span class="bash"> decelop分支reflog</span></span><br><span class="line"><span class="meta">$</span><span class="bash">git reflog develop</span></span><br><span class="line">2f8abd8 (develop) develop@&#123;0&#125;: commit: update d</span><br><span class="line">02cf32c develop@&#123;1&#125;: branch: Created from main</span><br></pre></td></tr></table></figure>
+
+<p>可以看到，在不同分支上进行的commit会记录到对应的文件中，同时还会记录到log/HEAD（主reflog）中，因此分支中的commit被引用了两次，即使删除了分支仍然还是存在引用，会影响到垃圾回收。</p>
+<h2 id="垃圾回收"><a href="#垃圾回收" class="headerlink" title="垃圾回收"></a>垃圾回收</h2><p>git对象对内容进行hash计算，最小单元是文件。即使两个文件只有很小的差异，仍然会创建两个完整的对象，消耗双倍的空间，而在版本控制中，这是很常见的情况。</p>
+<p>git不会立即删除不再需要的git对象，git对象数量只增不减，只有垃圾回收时才会删除冗余的对象。例如，当把文件加入暂存区时创建了一个git对象，更新文件时又会重新创建一个git对象，一个文件在提交前暂存了好几次是常见的。</p>
+<p>当撤销一个commit时，我们不希望立即从数据库中删除，希望能在一定时间范围内提供恢复的途径，所以git中有reflog的概念，涉及到commit的操作会记录到reflog中，垃圾回收时不会删除引用日志中存在的对象。</p>
+<p>基于上述原因，我们需要git gc来管理git对象。git gc不仅仅是删除冗余对象，包含了以下工作：</p>
+<ul>
+<li>pack-refs：将refs/heads和ref/tags目录下的引用打包到一个文件中（packed-refs）</li>
+<li>reflog expire：默认情况下清除超过90天的reflog记录，以及清除超过30天且不再需要的reflog记录（比如说提交一个commit，又将其删除了，那么30天后，与这个commit相关的reflog记录会被删除）</li>
+<li>repack：将日志和引用日志中的对象打包，其余的以松散对象的形式存在，不会被立即删除，由于git对象中存在大量重复内容，打包后会节省大量的空间。</li>
+<li>prune：默认情况下删除超过14天的松散对象，主要针对暂存时产生的git对象，既没有被日志引用，也没有被引用日志引用，但是作为松散对象仍然可以保留14天。</li>
+</ul>
+<p>也就是说，一个commit从日志中删除，30天后，从引用日志中删除，不再被打包，以松散对象的形式存在，显然已经超过14天，立即被彻底删除。而对于日志中存在的commit，只是90天后从引用日志中删除记录，永远不会被删除。</p>
+<p>手动删除reflog内容（一般不需要这么做）</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 提交a，b，然后撤销b</span></span><br><span class="line"><span class="meta">$</span><span class="bash">git <span class="built_in">log</span> --oneline</span></span><br><span class="line">13ea0df (HEAD -&gt; main) a</span><br><span class="line"><span class="meta">$</span><span class="bash">git reflog</span></span><br><span class="line">13ea0df (HEAD -&gt; main) HEAD@&#123;0&#125;: reset: moving to HEAD^</span><br><span class="line">51b9f9f HEAD@&#123;1&#125;: commit: b</span><br><span class="line">13ea0df (HEAD -&gt; main) HEAD@&#123;2&#125;: commit (initial): a</span><br><span class="line"><span class="meta">#</span><span class="bash"> 删除所有reflog</span></span><br><span class="line"><span class="meta">$</span><span class="bash">git reflog expire --dry-run --expire=now -all</span></span><br><span class="line">usage: git reflog expire [--expire=&lt;time&gt;] [--expire-unreachable=&lt;time&gt;] [--rewrite] [--updateref]$git reflog expire --dry-run --expire=now --all</span><br><span class="line">would prune commit (initial): a</span><br><span class="line">would prune commit: b</span><br><span class="line">would prune reset: moving to HEAD^</span><br><span class="line">would prune commit (initial): a</span><br><span class="line">would prune commit: b</span><br><span class="line">would prune reset: moving to HEAD^</span><br><span class="line"><span class="meta">#</span><span class="bash"> 删除所有过期1天的reflog</span></span><br><span class="line"><span class="meta">$</span><span class="bash">git reflog expire --dry-run --expire=1.day.ago --all</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 删除所有不再需要的reflog</span></span><br><span class="line"><span class="meta">$</span><span class="bash">git reflog expire --dry-run --expire-unreachable=now --all</span></span><br><span class="line">would prune commit: b</span><br><span class="line">would prune reset: moving to HEAD^</span><br><span class="line">would prune commit: b</span><br><span class="line">would prune reset: moving to HEAD^</span><br><span class="line"><span class="meta">#</span><span class="bash"> 删除所有不再需要且过期1天的reflog</span></span><br><span class="line"><span class="meta">$</span><span class="bash">git reflog expire --dry-run --expire-unreachable=1.day.ago --all</span></span><br></pre></td></tr></table></figure>
+<p>手动删除未被引用的松散对象（一般不需要这么做）</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 存在一个未被引用的对象</span></span><br><span class="line"><span class="meta">$</span><span class="bash">git prune --expire=now --dry-run</span></span><br><span class="line">e9944e6b6458a035017ff91e4b41de9f60fcc34b blob</span><br><span class="line"><span class="meta">$</span><span class="bash">git gc</span></span><br><span class="line">Enumerating objects: 3, done.</span><br><span class="line">Counting objects: 100% (3/3), done.</span><br><span class="line">Writing objects: 100% (3/3), done.</span><br><span class="line">Total 3 (delta 0), reused 3 (delta 0), pack-reused 0</span><br><span class="line"><span class="meta">#</span><span class="bash"> gc并没有立即回收，因为没有过期14天</span></span><br><span class="line"><span class="meta">$</span><span class="bash">ls .git/objects</span></span><br><span class="line">d-----         2021/7/10     13:55                e9</span><br><span class="line">d-----         2021/7/10     13:57                info</span><br><span class="line">d-----         2021/7/10     13:57                pack</span><br><span class="line"><span class="meta">#</span><span class="bash"> 传入参数--expire=now，立即回收</span></span><br><span class="line"><span class="meta">$</span><span class="bash">git gc --prune=now</span></span><br><span class="line">Enumerating objects: 3, done.</span><br><span class="line">Counting objects: 100% (3/3), done.</span><br><span class="line">Writing objects: 100% (3/3), done.</span><br><span class="line">Total 3 (delta 0), reused 3 (delta 0), pack-reused 0</span><br><span class="line"><span class="meta">#</span><span class="bash"> 成功</span></span><br><span class="line"><span class="meta">$</span><span class="bash">ls .git/objects</span></span><br><span class="line">d-----         2021/7/10     13:57                info</span><br><span class="line">d-----         2021/7/10     13:57                pack</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/07/02/git-core/" data-id="ckqxn5olc00012kpwbeqqci60" data-title="Git内部原理" class="article-share-link">Teilen</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/git/" rel="tag">git</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-nginx" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/06/18/nginx/" class="article-date">
+  <time class="dt-published" datetime="2021-06-18T08:00:00.000Z" itemprop="datePublished">2021-06-18</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/06/18/nginx/">Nginx配置</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="配置文件"><a href="#配置文件" class="headerlink" title="配置文件"></a>配置文件</h2><p>默认情况下，配置文件名为nginx.conf，并放在目录：/usr/local/nginx/conf, /etc/nginx, 或 /usr/local/etc/nginx 中。笔者在termux中安装了nginx，配置文件在目录/etc/nginx下。</p>
+<p>配置文件目录的入口是nginx.conf，由指定的指令控制的模块组成。一个简单的指令由空格分隔的名称和参数组成，并以分号(;)结尾。块指令具有与简单指令相同的结构，但不是以分号结尾，而是以大括号({和})包围的一组附加指令结束。 如果块指令可以在大括号内部有其他指令，则称为上下文(例如：events，http，server和location)。</p>
+<p>如果配置文件的内容太多，或者是为了配置文件的结构更加清晰，可以在配置目录中建立一个名为conf.d的目录，每一个server块都写到一个单独的文件中，并放到conf.d目录下，最后再nginx.conf中通过include引入。</p>
+<h2 id="日志文件"><a href="#日志文件" class="headerlink" title="日志文件"></a>日志文件</h2><p>日志文件在/var/log/nginx/目录下，具体的日志文件名称，日志格式还可以自己在配置文件中进行设置，默认的配置如下，实际文件中都用#号注释掉了，这是安装时附带的示例写法，也就是默认的配置：</p>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">error_log</span>  logs/error.log;</span><br><span class="line"><span class="attribute">access_log</span>  logs/access.log  main;</span><br><span class="line"><span class="attribute">log_format</span>  main  <span class="string">&#x27;$remote_addr - $remote_user [$time_local] &quot;$request&quot; &#x27;</span></span><br><span class="line">                  <span class="string">&#x27;$status $body_bytes_sent &quot;$http_referer&quot; &#x27;</span></span><br><span class="line">                  <span class="string">&#x27;&quot;$http_user_agent&quot; &quot;$http_x_forwarded_for&quot;&#x27;</span>;</span><br></pre></td></tr></table></figure>
+
+<h2 id="内置常量"><a href="#内置常量" class="headerlink" title="内置常量"></a>内置常量</h2><p>由$开头的都是常量，这和shell十分相像，后面在配置文件中会用到部分常量。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">$args                  请求中的参数，如www.abc.com/test/hello?a=1&amp;b=2的$args就是a=1&amp;b=2</span><br><span class="line">$document_root         Nginx虚拟主机配置文件中的root参数对应的值</span><br><span class="line">$document_uri          当前请求中不包含指令的URI，如www.abc.com/test/hello?a=1&amp;b=2的document_uri就是/test/hello，不包含后面的参数</span><br><span class="line">$host                  主机头，也就是域名</span><br><span class="line">$http_user_agent       客户端的详细信息，也就是浏览器的标识，用curl -A可以指定</span><br><span class="line">$http_cookie           cookie信息</span><br><span class="line">$limit_rate            如果Nginx服务器使用limit_rate配置了显示网络速率，则会显示，如果没有设置，则显示0</span><br><span class="line">$remote_addr           客户端的公网IP</span><br><span class="line">$remote_port           客户端的端口</span><br><span class="line">$request_method        请求资源的方式，GET/PUT/DELETE等</span><br><span class="line">$request_filename      当前请求的资源文件的路径名称，相当于是$document_root/$document_uri的组合</span><br><span class="line">$request_uri           请求的链接，包括$document_uri和$args</span><br><span class="line">$scheme                请求的协议，如ftp、http、https</span><br><span class="line">$server_protocol       客户端请求资源使用的协议的版本，如HTTP/1.0，HTTP/1.1，HTTP/2.0等</span><br><span class="line">$server_addr           服务器IP地址</span><br><span class="line">$server_name           服务器的主机名</span><br><span class="line">$server_port           服务器的端口号</span><br><span class="line">$uri                   和$document_uri相同</span><br><span class="line">$http_referer          客户端请求时的referer，通俗讲就是该请求是通过哪个链接跳过来的</span><br></pre></td></tr></table></figure>
+
+<h2 id="http块"><a href="#http块" class="headerlink" title="http块"></a>http块</h2><figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">http</span> &#123;</span><br><span class="line">    <span class="attribute">include</span>       mime.types;</span><br><span class="line">    <span class="attribute">default_type</span>  application/octet-stream;</span><br><span class="line">    <span class="attribute">sendfile</span>        <span class="literal">on</span>;</span><br><span class="line">    <span class="attribute">tcp_nopush</span>      <span class="literal">on</span>;</span><br><span class="line">    <span class="attribute">keepalive_timeout</span>  <span class="number">65</span>;</span><br><span class="line">    <span class="attribute">gzip</span>  <span class="literal">on</span>;</span><br><span class="line">    <span class="section">server</span> &#123;</span><br><span class="line">        <span class="attribute">listen</span>       <span class="number">8080</span>;</span><br><span class="line">        <span class="attribute">server_name</span>  termux.sun;</span><br><span class="line"></span><br><span class="line">        <span class="attribute">charset</span> utf-<span class="number">8</span>;</span><br><span class="line">        <span class="comment"># location / &#123;</span></span><br><span class="line">        <span class="comment">#     root   /data/data/com.termux/files/usr/share/nginx/html;</span></span><br><span class="line">        <span class="comment">#     index  index.html index.htm;</span></span><br><span class="line">        <span class="comment"># &#125;</span></span><br><span class="line">        <span class="attribute">location</span> = / &#123;</span><br><span class="line">            <span class="attribute">rewrite</span><span class="regexp"> ^/$</span> $scheme://$host:$server_port/home/;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="attribute">include</span> conf.d/<span class="regexp">*.conf</span>;</span><br><span class="line">        <span class="attribute">error_page</span>   <span class="number">404</span>              /<span class="number">404</span>.html;</span><br><span class="line">        <span class="attribute">error_page</span>   <span class="number">500</span> <span class="number">502</span> <span class="number">503</span> <span class="number">504</span>  /50x.html;</span><br><span class="line">        <span class="attribute">location</span> = /50x.html &#123;</span><br><span class="line">            <span class="attribute">root</span>   /data/data/com.termux/files/usr/share/nginx/html;</span><br><span class="line">        &#125;</span><br></pre></td></tr></table></figure>
+<p>http块是对http服务器相关的配置，http块配置的指令包括：文件引入、MIME-TYPE 定义、日志自定义、连接超时时间、单链接请求数上限等。</p>
+<p>在http块中的server块相当于一台虚拟主机，有自己的服务器名字和监听的端口号，每个server块中还有多个location块，可以根据url的路径进行匹配。error_page表示服务器出错时返回的页面，错误代码为404时返回页面404.html，表示资源不存在，错误代码为502、502、503、504时返回页面50x.html，表示服务器错误，这些都是nginx的默认处理方式。</p>
+<h2 id="请求分发"><a href="#请求分发" class="headerlink" title="请求分发"></a>请求分发</h2><p>如果要在一台主机上部署多个server，可以通过域名来进行区分，也可以通过端口号来进行区分，将请求发送到对应的server中。如果将不同的主机部署到不同的端口上，就不得不开放多个端口号，而且一般来说http端口号采用80，https端口号采用443，如果服务器在其他端口号上，访问不是很方便。</p>
+<p>还有一种方法是通过路径来进行转发请求，比如说路径以/home开头的都转发到静态服务器中，以/flask开头的都转发到flask服务器中。而在外部看来，都是通过同一个ip地址和同一个端口号进行访问的，仅仅只有路径格式的差异，完全看不出这是来自于不同服务器的响应。</p>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">location</span><span class="regexp"> ^~</span> /home &#123;</span><br><span class="line">    <span class="attribute">alias</span>       /data/data/com.termux/files/home;</span><br><span class="line">    <span class="attribute">autoindex</span>   <span class="literal">on</span>;</span><br><span class="line">    <span class="attribute">autoindex_exact_size</span> <span class="literal">off</span>;</span><br><span class="line">    <span class="attribute">autoindex_format</span>     html;</span><br><span class="line">&#125;</span><br><span class="line"><span class="attribute">location</span><span class="regexp"> ^~</span> /home/json &#123;</span><br><span class="line">    <span class="attribute">alias</span>      /data/data/com.termux/files/home;</span><br><span class="line">    <span class="attribute">autoindex</span>  <span class="literal">on</span>;</span><br><span class="line">    <span class="attribute">autoindex_exact_size</span>  <span class="literal">off</span>;</span><br><span class="line">    <span class="attribute">autoindex_format</span>      json;</span><br><span class="line">&#125;</span><br><span class="line"><span class="attribute">location</span> /flaskr/ &#123;</span><br><span class="line">    <span class="attribute">proxy_pass</span>         http://127.0.0.1:8000/;</span><br><span class="line">    <span class="attribute">proxy_set_header</span>   Host $host:$server_port;</span><br><span class="line">    <span class="attribute">proxy_set_header</span>   X-Real-IP $remote_addr;</span><br><span class="line">    <span class="attribute">proxy_set_header</span>   X-Forwarded-Proto $scheme;</span><br><span class="line">    <span class="attribute">proxy_set_header</span>   X-Forwarded-Host $server_name;</span><br><span class="line">    <span class="attribute">proxy_set_header</span>   X-Forwarded-For $proxy_add_x_forwarded_for;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>以上前两个都是静态页面，分别挂载在/home和/home/jsom上，alias表示资源实际的位置，autoindex表示允许列举出目录，默认情况下当请求路径是一个目录时，那么在该目录下寻找index.html作为返回页面，如果没找到则返回404。开启autoindex后，请求目录时则返回下目录下的所有文件详情。</p>
+<p>autoindex_format表示请求一个目录时返回的格式，默认为html格式，页面下的每个文件都是超链接，便于在浏览器中浏览。也可以设置为json格式，json格式比html格式更容易在程序中进行解析。</p>
+<p>路径以/flaskr开头的请求都将转发到127.0.0.1:8000，proxy_set_header可以添加请求头，让服务器知道发起请求的真实ip，在外部只能看到nginx服务器，看不到真实响应的服务器，实现了反向代理。</p>
+<h2 id="Location匹配规则"><a href="#Location匹配规则" class="headerlink" title="Location匹配规则"></a>Location匹配规则</h2><h3 id="匹配前缀"><a href="#匹配前缀" class="headerlink" title="匹配前缀"></a>匹配前缀</h3><ul>
+<li>空: location后没有参数直接跟着URI，表示前缀匹配，代表跟请求中的URI从头开始匹配。</li>
+<li>~ : 执行一个正则匹配，区分大小写。</li>
+<li>~*: 执行一个正则匹配，不区分大小写。</li>
+<li>^~: 普通字符匹配，多用来匹配目录。</li>
+<li>= : 执行普通字符精确匹配。</li>
+<li>@ : “@” 定义一个命名的 location，@定义的locaiton名字一般用在内部定向，例如error_page, try_files命令中。它的功能类似于编程中的goto。</li>
+</ul>
+<h3 id="匹配顺序"><a href="#匹配顺序" class="headerlink" title="匹配顺序"></a>匹配顺序</h3><ol>
+<li>寻找有没有“=”等号参数完全匹配的location，如果有完全匹配的等号location则停止匹配，执行该location中的指令，不去匹配其它类型的location。</li>
+<li>匹配所有非正则表达式URI的location(包括空，=，^<del>三种参数)。找到请求URI和location URI按前缀匹配最长的location，如果这个最长的location的参数是^</del>，则停止匹配，执行该location中的指令，否则暂存该location。</li>
+<li>匹配正则表达式URI的location(包括<del>，</del>*两种参数)，按location在配置文件中出现的顺序匹配，如果找到第一个匹配的locaiton则停止匹配，执行该location。</li>
+<li>匹配完所有正则表达式都没有匹配的location，则执行第二步中暂存的最长前缀匹配location</li>
+</ol>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/06/18/nginx/" data-id="ckqlumhib0003b4pwd2gk5r2l" data-title="Nginx配置" class="article-share-link">Teilen</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/nginx/" rel="tag">nginx</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-contexmanager" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2021/06/16/contexmanager/" class="article-date">
@@ -106,7 +401,7 @@
 
 <h2 id="生成器"><a href="#生成器" class="headerlink" title="生成器"></a>生成器</h2><p>如果一个函数中有yield关键字，那么这个函数的返回值就是一个生成器。生成器相当于一个由用户控制的子程序，通过调用send方法后开始运行，每当运行到yield位置就挂起，生成器的运行状态继续保留，yield后面的表达式返回给调用者，再次调用send方法可以恢复上一次的运行状态，继续运行到yield语句处，如果生成器返回了一个值，则抛出<code>StopIteration</code>。</p>
 <h3 id="send方法"><a href="#send方法" class="headerlink" title="send方法"></a>send方法</h3><p>通过send方法运行生成器时，还可以发送一个值到生成器中，类似于函数的传参，在形如<code>n=yield expression</code>的语句中，n会被赋值为send方法发送的值，然后继续运行下一行。如果是第一次调用send方法，生成器还没被激活，send方法只能发送None,否则抛出<code>TypeError</code>。</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">g</span>():</span></span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        n = <span class="keyword">yield</span> <span class="number">1</span></span><br><span class="line">        <span class="keyword">yield</span> n <span class="keyword">or</span> <span class="number">2</span></span><br><span class="line">    <span class="keyword">except</span>:</span><br><span class="line">        ...</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">test_generator_send</span>():</span></span><br><span class="line">    cm = g()</span><br><span class="line">    <span class="keyword">with</span> pytest.raises(TypeError):</span><br><span class="line">        cm.send(<span class="number">1</span>)</span><br><span class="line">        </span><br><span class="line">    <span class="keyword">assert</span> cm.send(<span class="literal">None</span>) == <span class="number">1</span></span><br><span class="line">    <span class="keyword">assert</span> cm.send(<span class="literal">None</span>) == <span class="number">2</span></span><br><span class="line">    <span class="keyword">with</span> pytest.raises(StopIteration):</span><br><span class="line">        cm.send(<span class="literal">None</span>)</span><br><span class="line"></span><br><span class="line">    cm = g()</span><br><span class="line">    <span class="keyword">assert</span> cm.send(<span class="literal">None</span>) == <span class="number">1</span></span><br><span class="line">    <span class="keyword">assert</span> cm.send(<span class="number">10</span>) == <span class="number">10</span></span><br><span class="line">    <span class="keyword">with</span> pytest.raises(StopIteration):</span><br><span class="line">        cm.send(<span class="literal">None</span>)</span><br></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">g</span>():</span></span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        n = <span class="keyword">yield</span> <span class="number">1</span></span><br><span class="line">        <span class="keyword">yield</span> n <span class="keyword">or</span> <span class="number">2</span></span><br><span class="line">    <span class="keyword">except</span>:</span><br><span class="line">        ...</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">test_generator_send</span>():</span></span><br><span class="line">    cm = g()</span><br><span class="line">    <span class="keyword">with</span> pytest.raises(TypeError):</span><br><span class="line">        cm.send(<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">assert</span> cm.send(<span class="literal">None</span>) == <span class="number">1</span></span><br><span class="line">    <span class="keyword">assert</span> cm.send(<span class="literal">None</span>) == <span class="number">2</span></span><br><span class="line">    <span class="keyword">with</span> pytest.raises(StopIteration):</span><br><span class="line">        cm.send(<span class="literal">None</span>)</span><br><span class="line"></span><br><span class="line">    cm = g()</span><br><span class="line">    <span class="keyword">assert</span> cm.send(<span class="literal">None</span>) == <span class="number">1</span></span><br><span class="line">    <span class="keyword">assert</span> cm.send(<span class="number">10</span>) == <span class="number">10</span></span><br><span class="line">    <span class="keyword">with</span> pytest.raises(StopIteration):</span><br><span class="line">        cm.send(<span class="literal">None</span>)</span><br></pre></td></tr></table></figure>
 
 <p>通过send方法可以像函数一样操作生成器，比函数更优的是生成器能保存上一次运行的状态，当然闭包也能保存运行的状态，但是生成器更加灵活，语法更加简单清晰。</p>
 <h3 id="throw方法"><a href="#throw方法" class="headerlink" title="throw方法"></a>throw方法</h3><p>throw方法可以向生成器中抛出异常，生成器可以捕获异常进行处理，也可以选择不处理异常，后续讨论的<code>contexmanager</code>修饰器就利用了这个方法将with代码块中异常传递到生成器中进行处理。</p>
@@ -114,7 +409,7 @@
 
 <h3 id="close方法"><a href="#close方法" class="headerlink" title="close方法"></a>close方法</h3><p>close方法用于关闭生成器，调用close方法后，再调用send方法只会抛出StopIteration，调用throw方法则抛出传入的异常。</p>
 <p>generator是内置类型，close方法也是内建方法，底层使用c语言实现的，但是在Python标准库的collection.abc模块中，<code>Generator</code>抽象类型实现了close方法，可以<a target="_blank" rel="noopener" href="https://github.com/python/cpython/blob/3.9/Lib/_collections_abc.py">参考</a></p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Generator</span>(<span class="params">Iterator</span>):</span></span><br><span class="line">    ...</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">close</span>(<span class="params">self</span>):</span></span><br><span class="line">        <span class="string">&quot;&quot;&quot;Raise GeneratorExit inside generator.</span></span><br><span class="line"><span class="string">        &quot;&quot;&quot;</span></span><br><span class="line">        <span class="keyword">try</span>:</span><br><span class="line">            self.throw(GeneratorExit)</span><br><span class="line">        <span class="keyword">except</span> (GeneratorExit, StopIteration):</span><br><span class="line">            <span class="keyword">pass</span></span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            <span class="keyword">raise</span> RuntimeError(<span class="string">&quot;generator ignored GeneratorExit&quot;</span>)</span><br><span class="line">    </span><br><span class="line">    ...</span><br></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Generator</span>(<span class="params">Iterator</span>):</span></span><br><span class="line">    ...</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">close</span>(<span class="params">self</span>):</span></span><br><span class="line">        <span class="string">&quot;&quot;&quot;Raise GeneratorExit inside generator.</span></span><br><span class="line"><span class="string">        &quot;&quot;&quot;</span></span><br><span class="line">        <span class="keyword">try</span>:</span><br><span class="line">            self.throw(GeneratorExit)</span><br><span class="line">        <span class="keyword">except</span> (GeneratorExit, StopIteration):</span><br><span class="line">            <span class="keyword">pass</span></span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            <span class="keyword">raise</span> RuntimeError(<span class="string">&quot;generator ignored GeneratorExit&quot;</span>)</span><br><span class="line"></span><br><span class="line">    ...</span><br></pre></td></tr></table></figure>
 
 <p>close方法本质上就是通过throw方法抛出GeneratorExit异常，生成器要么运行到return语句返回，抛出StopIteration异常，要么不捕获GeneratorExit异常直接抛出。如果生成器捕获了GeneratorExit并且没有抛出异常（例如遇到了yield语句），则在close中抛出RuntimeError，说起来不是很清晰，遇到这方面的问题可以结合上面的代码分析。</p>
 <h3 id="GeneratorExit"><a href="#GeneratorExit" class="headerlink" title="GeneratorExit"></a>GeneratorExit</h3><p>GeneratorExit是一个特殊的异常，提供了稳定可靠的信号关闭生成器（使用close函数才能真正可靠），一般不要去捕获GeneratorExit。通常我们捕获和处理的异常都是Exception及其子类，GeneratorExit并不属于Exception的子类，所以<code>except Exception: ...</code>不会捕获GeneratorExit异常，但是会被<code>except: ...</code>捕获。（更多的异常层次结构参考<a target="_blank" rel="noopener" href="https://docs.python.org/zh-cn/3/library/exceptions.html?highlight=exception#exception-hierarchy">官方文档</a>）</p>
@@ -135,11 +430,11 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://example.com/2021/06/16/contexmanager/" data-id="ckq6c9oyf0000mgpwfn024ydp" data-title="Contextlib模块和生成器" class="article-share-link">Teilen</a>
+      <a data-url="http://example.com/2021/06/16/contexmanager/" data-id="ckqlumhhz0000b4pw36u05yuv" data-title="Contextlib模块和生成器" class="article-share-link">Teilen</a>
       
       
       
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/py-buildins/" rel="tag">py-buildins</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/python/" rel="tag">python</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/python/" rel="tag">python</a></li></ul>
 
     </footer>
   </div>
@@ -206,11 +501,11 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://example.com/2021/06/15/traceback/" data-id="ckq6c9oyk0001mgpw46oohn5t" data-title="TraceBack模块和Exception类" class="article-share-link">Teilen</a>
+      <a data-url="http://example.com/2021/06/15/traceback/" data-id="ckqlumhi60001b4pwd1bvhcdx" data-title="TraceBack模块和Exception类" class="article-share-link">Teilen</a>
       
       
       
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/py-buildins/" rel="tag">py-buildins</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/python/" rel="tag">python</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/python/" rel="tag">python</a></li></ul>
 
     </footer>
   </div>
@@ -233,7 +528,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/py-buildins/" rel="tag">py-buildins</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/python/" rel="tag">python</a></li></ul>
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/git/" rel="tag">git</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nginx/" rel="tag">nginx</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/python/" rel="tag">python</a></li></ul>
     </div>
   </div>
 
@@ -243,7 +538,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Tag Cloud</h3>
     <div class="widget tagcloud">
-      <a href="/tags/py-buildins/" style="font-size: 10px;">py-buildins</a> <a href="/tags/python/" style="font-size: 10px;">python</a>
+      <a href="/tags/git/" style="font-size: 20px;">git</a> <a href="/tags/nginx/" style="font-size: 10px;">nginx</a> <a href="/tags/python/" style="font-size: 20px;">python</a>
     </div>
   </div>
 
@@ -252,7 +547,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archiv</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">六月 2021</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">七月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">六月 2021</a></li></ul>
     </div>
   </div>
 
@@ -263,6 +558,18 @@
     <h3 class="widget-title">letzter Beitrag</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/2021/07/04/git-basic/">Git基本操作</a>
+          </li>
+        
+          <li>
+            <a href="/2021/07/02/git-core/">Git内部原理</a>
+          </li>
+        
+          <li>
+            <a href="/2021/06/18/nginx/">Nginx配置</a>
+          </li>
         
           <li>
             <a href="/2021/06/16/contexmanager/">Contextlib模块和生成器</a>
